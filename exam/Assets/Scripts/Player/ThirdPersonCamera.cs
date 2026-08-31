@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class ThirdPersonCamera : MonoBehaviour
 {
@@ -11,7 +10,7 @@ public class ThirdPersonCamera : MonoBehaviour
     public float height = 2f;
 
     [Header("Camera Rotation")]
-    public float sensitivity = 2f;
+    public float sensitivity = 0.05f;
     public float minPitch = -30f;
     public float maxPitch = 60f;
 
@@ -27,13 +26,25 @@ public class ThirdPersonCamera : MonoBehaviour
 
     private float shakeTimer;
 
+    // True while the cinematic Timeline is controlling the camera.
+    private bool cinematicMode = false;
+
     void Update()
     {
+        // Don't allow normal camera controls during the cinematic.
+        if (cinematicMode)
+            return;
+
         HandleMouseLook();
     }
 
     void LateUpdate()
     {
+        // Don't move the gameplay camera while Cinemachine
+        // is controlling it for the cinematic.
+        if (cinematicMode)
+            return;
+
         if (target == null)
             return;
 
@@ -85,6 +96,10 @@ public class ThirdPersonCamera : MonoBehaviour
 
     public void RotateCamera(Vector2 delta)
     {
+        // Ignore camera input during cinematic.
+        if (cinematicMode)
+            return;
+
         yaw += delta.x * sensitivity;
         pitch -= delta.y * sensitivity;
 
@@ -98,5 +113,17 @@ public class ThirdPersonCamera : MonoBehaviour
     public void ShakeCamera()
     {
         shakeTimer = shakeDuration;
+    }
+
+    // Called when the cinematic starts.
+    public void StartCinematic()
+    {
+        cinematicMode = true;
+    }
+
+    // Called when the cinematic finishes.
+    public void EndCinematic()
+    {
+        cinematicMode = false;
     }
 }
