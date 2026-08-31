@@ -4,27 +4,39 @@ public class MobileCameraTouch : MonoBehaviour
 {
     public ThirdPersonCamera cameraController;
 
+    private int cameraFingerId = -1;
+
     void Update()
     {
-        // Mouse control for testing in Unity
-        if (Input.GetMouseButton(0))
+        // Look through all active touches.
+        for (int i = 0; i < Input.touchCount; i++)
         {
-            Vector2 mouseDelta = new Vector2(
-                Input.GetAxis("Mouse X"),
-                Input.GetAxis("Mouse Y")
-            );
+            Touch touch = Input.GetTouch(i);
 
-            cameraController.RotateCamera(mouseDelta * 10f);
-        }
-
-        // Touch control for mobile
-        if (Input.touchCount > 0)
-        {
-            Touch touch = Input.GetTouch(0);
-
-            if (touch.phase == TouchPhase.Moved)
+            // Find a finger that started on the right side.
+            if (touch.phase == TouchPhase.Began)
             {
-                cameraController.RotateCamera(touch.deltaPosition);
+                if (touch.position.x > Screen.width / 2f)
+                {
+                    cameraFingerId = touch.fingerId;
+                }
+            }
+
+            // Only this finger controls the camera.
+            if (touch.fingerId == cameraFingerId)
+            {
+                if (touch.phase == TouchPhase.Moved)
+                {
+                    cameraController.RotateCamera(
+                        touch.deltaPosition
+                    );
+                }
+
+                if (touch.phase == TouchPhase.Ended ||
+                    touch.phase == TouchPhase.Canceled)
+                {
+                    cameraFingerId = -1;
+                }
             }
         }
     }

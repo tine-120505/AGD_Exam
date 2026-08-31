@@ -59,16 +59,13 @@ public class ThirdPersonCamera : MonoBehaviour
 
     void HandleMouseLook()
     {
-        // DO NOT move the camera while the joystick is being dragged.
-        if (MobileJoystick.IsDragging)
+        // Right-click + mouse movement controls the camera.
+        if (!Input.GetMouseButton(1))
             return;
 
-        // DO NOT move the camera while clicking/dragging other UI.
-        if (EventSystem.current != null &&
-            EventSystem.current.IsPointerOverGameObject())
-        {
+        // Don't rotate the camera while using the joystick.
+        if (MobileJoystick.IsDragging)
             return;
-        }
 
         float mouseX = Input.GetAxis("Mouse X");
         float mouseY = Input.GetAxis("Mouse Y");
