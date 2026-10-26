@@ -1,3 +1,4 @@
+
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -20,6 +21,8 @@ public class PlayerHealth : MonoBehaviour
     private int currentHealth;
     private float flashTimer;
 
+    public int CurrentHealth => currentHealth;
+
     void Start()
     {
         ResetHealth();
@@ -37,21 +40,61 @@ public class PlayerHealth : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
-        currentHealth -= damage;
+        // Ignore invalid damage.
+        if (damage <= 0)
+            return;
+
+        // Check whether the player has an active Shield power-up.
+        PlayerPowerUps powerUps = GetComponent<PlayerPowerUps>();
+
+        if (powerUps != null && powerUps.IsShieldActive)
+        {
+            Debug.Log("Shield blocked the damage!");
+            return;
+        }
+
+        // Apply damage.
+        currentHealth = Mathf.Clamp(
+            currentHealth - damage,
+            0,
+            maxHealth
+        );
 
         Debug.Log("Player Health: " + currentHealth);
 
+        // Shake the camera when damaged.
         if (cameraController != null)
         {
             cameraController.ShakeCamera();
         }
 
+        // Trigger the damage flash.
         flashTimer = flashDuration;
 
+        // Handle death.
         if (currentHealth <= 0)
         {
             Die();
         }
+    }
+
+    public void Heal(int amount)
+    {
+        if (amount <= 0)
+            return;
+
+        int previousHealth = currentHealth;
+
+        currentHealth = Mathf.Clamp(
+            currentHealth + amount,
+            0,
+            maxHealth
+        );
+
+        Debug.Log(
+            "Player Healed: " +
+            previousHealth + " -> " + currentHealth
+        );
     }
 
     void UpdateVignette()
@@ -110,6 +153,8 @@ public class PlayerHealth : MonoBehaviour
     {
         currentHealth = maxHealth;
         flashTimer = 0f;
+
+        UpdateVignette();
 
         Debug.Log(
             "Player Health Reset: " + currentHealth
